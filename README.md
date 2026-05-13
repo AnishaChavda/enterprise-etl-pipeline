@@ -10,6 +10,11 @@ The transformed data is loaded into a PostgreSQL warehouse using SQLAlchemy with
 
 The project also includes Docker containerization, logging, testing, CI/CD-ready structure, and optional AWS S3 integration for intermediate storage. The main objective is to build a scalable, secure, and reliable ETL pipeline that creates a single source of truth for analytics and reporting.
 
+## Team Members
+- Anisha Chavda
+- Ramyashri
+- krushil lukhi
+
 ## Tech Stack
 
 - Python 3.11+
