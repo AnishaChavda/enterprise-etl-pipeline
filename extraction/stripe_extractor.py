@@ -1,26 +1,35 @@
-import requests
+import stripe
 import json
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+
+# Set Stripe API key
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
 print("Stripe Extraction Started")
 
-# Public practice API
-url = "https://jsonplaceholder.typicode.com/users"
+try:
+    # Fetch customers
+    customers = stripe.Customer.list(limit=5)
 
-# Send GET request
-response = requests.get(url)
+    print("Customers fetched successfully")
+    print("Total Customers:", len(customers.data))
+    print("Has More:", customers.has_more)
 
-# Print status code
-print("Status Code:", response.status_code)
+    customer_data = []
 
-# Convert response to JSON
-data = response.json()
+    for customer in customers.data:
+        customer_data.append(customer.to_dict())
 
-# Print data
-print("Total Records:", len(data))
-print("First User:", data[0]["name"])
+    # Save JSON data
+    with open("data/raw/stripe/customers.json", "w") as file:
+        json.dump(customer_data, file, indent=4)
 
-# Save JSON file
-with open("data/raw/stripe/users.json", "w") as file:
-    json.dump(data, file, indent=4)
+    print("Customer data saved successfully")
 
-print("Data saved successfully")
+except Exception as e:
+    print("Error:", e)
