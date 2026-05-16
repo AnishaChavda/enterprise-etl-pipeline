@@ -2,34 +2,72 @@ import stripe
 import json
 import os
 from dotenv import load_dotenv
+from datetime import datetime
 
 # Load environment variables
-load_dotenv()
-
+load_dotenv(dotenv_path=".env")
 
 # Set Stripe API key
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
 print("Stripe Extraction Started")
 
-try:
-    # Fetch customers
-    customers = stripe.Customer.list(limit=5)
 
-    print("Customers fetched successfully")
-    print("Total Customers:", len(customers.data))
-    print("Has More:", customers.has_more)
+def fetch_customers(limit=10):
+    """
+    Fetch customers from Stripe API
+    """
 
-    customer_data = []
+    try:
+        customers = stripe.Customer.list(limit=limit)
 
-    for customer in customers.data:
-        customer_data.append(customer.to_dict())
+        print(f"Customers fetched successfully: {len(customers.data)}")
 
-    # Save JSON data
-    with open("data/raw/stripe/customers.json", "w") as file:
-        json.dump(customer_data, file, indent=4)
+        return customers.data
 
-    print("Customer data saved successfully")
+    except Exception as e:
+        print("Error fetching customers:", e)
+        return []
 
-except Exception as e:
-    print("Error:", e)
+
+def save_customers_to_json(customers):
+    """
+    Save customer data into JSON file
+    """
+
+    try:
+        customer_data = []
+
+        for customer in customers:
+            customer_data.append(customer.to_dict())
+
+        # Generate timestamp filename
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+        file_path = f"data/raw/stripe/customers_{timestamp}.json"
+
+        with open(file_path, "w") as file:
+            json.dump(customer_data, file, indent=4)
+
+        print(f"Customer data saved successfully: {file_path}")
+
+    except Exception as e:
+        print("Error saving JSON:", e)
+
+
+def main():
+    """
+    Main ETL extraction flow
+    """
+
+    customers = fetch_customers(limit=5)
+
+    if customers:
+        save_customers_to_json(customers)
+    else:
+        print("No customer data found")
+
+
+# Run script
+if __name__ == "__main__":
+    main()
