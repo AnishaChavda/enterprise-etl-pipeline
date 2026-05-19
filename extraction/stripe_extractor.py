@@ -10,64 +10,74 @@ load_dotenv(dotenv_path=".env")
 # Set Stripe API key
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
-print("Stripe Extraction Started")
+print("Stripe Pagination Extraction Started")
 
 
-def fetch_customers(limit=10):
+def fetch_all_customers(limit=5):
     """
-    Fetch customers from Stripe API
-    """
-
-    try:
-        customers = stripe.Customer.list(limit=limit)
-
-        print(f"Customers fetched successfully: {len(customers.data)}")
-
-        return customers.data
-
-    except Exception as e:
-        print("Error fetching customers:", e)
-        return []
-
-
-def save_customers_to_json(customers):
-    """
-    Save customer data into JSON file
+    Fetch all customers using Stripe pagination
     """
 
-    try:
-        customer_data = []
+    all_customers = []
 
+    starting_after = None
+
+    while True:
+
+        # API request
+        response = stripe.Customer.list(
+            limit=limit,
+            starting_after=starting_after
+        )
+
+        customers = response.data
+
+        print("=" * 50)
+        print(f"Fetched {len(customers)} customers")
+        print("=" * 50)
+
+        # Add customers to master list
         for customer in customers:
-            customer_data.append(customer.to_dict())
+            all_customers.append(customer.to_dict())
 
-        # Generate timestamp filename
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # Check pagination
+        if response.has_more:
 
-        file_path = f"data/raw/stripe/customers_{timestamp}.json"
+            # Get last customer ID
+            starting_after = customers[-1].id
 
-        with open(file_path, "w") as file:
-            json.dump(customer_data, file, indent=4)
+            print(f"Fetching next page after: {starting_after}")
 
-        print(f"Customer data saved successfully: {file_path}")
+        else:
+            print("No more customers left")
+            break
 
-    except Exception as e:
-        print("Error saving JSON:", e)
+    return all_customers
+
+
+def save_customers(customers):
+    """
+    Save customers into JSON file
+    """
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    file_path = f"data/raw/stripe/customers_{timestamp}.json"
+
+    with open(file_path, "w") as file:
+        json.dump(customers, file, indent=4)
+
+    print(f"Customer data saved: {file_path}")
 
 
 def main():
-    """
-    Main ETL extraction flow
-    """
 
-    customers = fetch_customers(limit=5)
+    customers = fetch_all_customers(limit=5)
 
-    if customers:
-        save_customers_to_json(customers)
-    else:
-        print("No customer data found")
+    print(f"Total Customers Extracted: {len(customers)}")
+
+    save_customers(customers)
 
 
-# Run script
 if __name__ == "__main__":
     main()
