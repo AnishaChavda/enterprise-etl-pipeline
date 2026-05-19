@@ -114,17 +114,33 @@ def fetch_all_customers(limit=5, max_retries=3):
 
 def save_customers(customers):
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    # Current timestamp
+    now = datetime.now()
 
-    file_path = f"data/raw/stripe/customers_{timestamp}.json"
+    # Create date-based folders
+    year = now.strftime("%Y")
+    month = now.strftime("%m")
+    day = now.strftime("%d")
 
+    folder_path = f"data/raw/stripe/{year}/{month}/{day}"
+
+    # Create folders automatically
+    os.makedirs(folder_path, exist_ok=True)
+
+    # Timestamp filename
+    timestamp = now.strftime("%Y%m%d_%H%M%S")
+
+    file_name = f"customers_{timestamp}.json"
+
+    file_path = f"{folder_path}/{file_name}"
+
+    # Save JSON
     with open(file_path, "w") as file:
         json.dump(customers, file, indent=4)
 
     print(f"Customer data saved: {file_path}")
 
     logging.info(f"Customer data saved: {file_path}")
-
 
 def main():
 
