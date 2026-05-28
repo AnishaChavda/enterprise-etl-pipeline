@@ -4,26 +4,25 @@ import os
 import time
 import logging
 
-from dotenv import load_dotenv
 from datetime import datetime
 
-# Load environment variables
-load_dotenv(dotenv_path=".env")
+from utils.stripe_client import *
+from configs.config import (
+    API_LIMIT,
+    MAX_RETRIES,
+    CUSTOMERS_PATH
+)
 
-# Stripe API key
-stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
-
-# Configure logging
 logging.basicConfig(
-    filename="logs/stripe_extraction.log",
+    filename="logs/customer_extraction.log",
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-print("Stripe Reliable Extraction Started")
+print("Customer Extraction Started")
 
 
-def fetch_all_customers(limit=5, max_retries=3):
+def fetch_all_customers():
 
     all_customers = []
 
@@ -33,14 +32,12 @@ def fetch_all_customers(limit=5, max_retries=3):
 
         retries = 0
 
-        while retries < max_retries:
+        while retries < MAX_RETRIES:
 
             try:
 
-                logging.info("Sending request to Stripe API")
-
                 response = stripe.Customer.list(
-                    limit=limit,
+                    limit=API_LIMIT,
                     starting_after=starting_after
                 )
 
@@ -48,110 +45,41 @@ def fetch_all_customers(limit=5, max_retries=3):
 
                 print(f"Fetched {len(customers)} customers")
 
-                logging.info(f"Fetched {len(customers)} customers")
-
-                # Store customers
                 for customer in customers:
                     all_customers.append(customer.to_dict())
 
-                # Pagination handling
                 if response.has_more:
 
                     starting_after = customers[-1].id
 
-                    print(f"Next page after: {starting_after}")
-
-                    logging.info(f"Next page after: {starting_after}")
-
                 else:
-                    print("No more customers left")
-
-                    logging.info("All customers fetched successfully")
-
                     return all_customers
 
-                # Exit retry loop if successful
                 break
-
-            except stripe.error.RateLimitError as e:
-
-                retries += 1
-
-                print("Rate limit exceeded. Retrying...")
-
-                logging.warning(f"Rate limit error: {e}")
-
-                time.sleep(5)
-
-            except stripe.error.APIConnectionError as e:
-
-                retries += 1
-
-                print("Network error. Retrying...")
-
-                logging.warning(f"Connection error: {e}")
-
-                time.sleep(5)
-
-            except stripe.error.StripeError as e:
-
-                print("Stripe API error:", e)
-
-                logging.error(f"Stripe API error: {e}")
-
-                return []
 
             except Exception as e:
 
-                print("Unexpected error:", e)
+                retries += 1
 
-                logging.error(f"Unexpected error: {e}")
-
-                return []
+                logging.error(e)
 
     return all_customers
 
 
 def save_customers(customers):
 
-    # Current timestamp
-    now = datetime.now()
+    os.makedirs(CUSTOMERS_PATH, exist_ok=True)
 
-    # Create date-based folders
-    year = now.strftime("%Y")
-    month = now.strftime("%m")
-    day = now.strftime("%d")
+    file_path = f"{CUSTOMERS_PATH}/customers.json"
 
-    folder_path = f"data/raw/stripe/{year}/{month}/{day}"
-
-    # Create folders automatically
-    os.makedirs(folder_path, exist_ok=True)
-
-    # Timestamp filename
-    timestamp = now.strftime("%Y%m%d_%H%M%S")
-
-    file_name = f"customers_{timestamp}.json"
-
-    file_path = f"{folder_path}/{file_name}"
-
-    # Save JSON
     with open(file_path, "w") as file:
         json.dump(customers, file, indent=4)
 
-    print(f"Customer data saved: {file_path}")
-
-    logging.info(f"Customer data saved: {file_path}")
-
-def main():
-
-    customers = fetch_all_customers(limit=5)
-
-    print(f"Total Customers Extracted: {len(customers)}")
-
-    logging.info(f"Total Customers Extracted: {len(customers)}")
-
-    save_customers(customers)
+    print("Customers saved successfully")
 
 
 if __name__ == "__main__":
-    main()
+
+    customers = fetch_all_customers()
+
+    save_customers(customers)
