@@ -19,7 +19,9 @@ try:
     for charge in charges.data:
         charge_data.append(charge)
 
-    with open("data/raw/stripe/charges.json", "w") as file:
+    os.makedirs("data/raw/stripe/charges", exist_ok=True)
+
+    with open("data/raw/stripe/charges/charges.json", "w") as file:
         json.dump(charge_data, file, indent=4)
 
     print("Charges saved successfully")
