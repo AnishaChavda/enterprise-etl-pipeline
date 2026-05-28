@@ -4,6 +4,8 @@ import os
 import time
 import logging
 
+from datetime import datetime
+
 from utils.stripe_client import *
 from configs.config import (
     API_LIMIT,
@@ -123,12 +125,13 @@ def fetch_all_customers():
 
     return all_customers
 
-
 def save_customers(customers):
 
     os.makedirs(CUSTOMERS_PATH, exist_ok=True)
 
-    file_path = f"{CUSTOMERS_PATH}/customers.json"
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    file_path = f"{CUSTOMERS_PATH}/customers_{timestamp}.json"
 
     with open(file_path, "w") as file:
 
@@ -137,7 +140,6 @@ def save_customers(customers):
     logging.info(f"Customer data saved at {file_path}")
 
     print("Customers saved successfully")
-
 
 if __name__ == "__main__":
 

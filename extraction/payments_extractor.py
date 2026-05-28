@@ -4,6 +4,8 @@ import os
 import logging
 import time
 
+from datetime import datetime
+
 from utils.stripe_client import *
 from configs.config import (
     API_LIMIT,
@@ -11,6 +13,7 @@ from configs.config import (
     PAYMENTS_PATH
 )
 
+# Logging Configuration
 logging.basicConfig(
     filename="logs/payments_extraction.log",
     level=logging.INFO,
@@ -34,13 +37,20 @@ try:
     for payment in payments.data:
         payment_data.append(payment)
 
+    # Create payments folder if not exists
     os.makedirs(PAYMENTS_PATH, exist_ok=True)
 
-    with open(f"{PAYMENTS_PATH}/payments.json", "w") as file:
+    # Timestamp filename
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    file_path = f"{PAYMENTS_PATH}/payments_{timestamp}.json"
+
+    # Save JSON file
+    with open(file_path, "w") as file:
 
         json.dump(payment_data, file, indent=4, default=str)
 
-    logging.info("Payments saved successfully")
+    logging.info(f"Payments saved successfully at {file_path}")
 
     print("Payments saved successfully")
 
@@ -50,20 +60,30 @@ except stripe.error.RateLimitError as e:
 
     logging.warning(f"Rate limit error: {e}")
 
+    print(f"Retry Attempt: {retries}")
+
 except stripe.error.APIConnectionError as e:
 
     retries += 1
 
     logging.warning(f"API connection error: {e}")
 
+    print(f"Retry Attempt: {retries}")
+
 except stripe.error.AuthenticationError as e:
 
     logging.error(f"Authentication error: {e}")
+
+    print("Authentication Failed")
 
 except Exception as e:
 
     logging.error(f"Unexpected error: {e}")
 
+    print("Unexpected Error")
+
 end_time = time.time()
 
-logging.info(f"Execution Time: {end_time - start_time} seconds")
+execution_time = end_time - start_time
+
+logging.info(f"Execution Time: {execution_time} seconds")

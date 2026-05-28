@@ -4,6 +4,8 @@ import os
 import logging
 import time
 
+from datetime import datetime
+
 from utils.stripe_client import *
 from configs.config import (
     API_LIMIT,
@@ -36,7 +38,11 @@ try:
 
     os.makedirs(CHARGES_PATH, exist_ok=True)
 
-    with open(f"{CHARGES_PATH}/charges.json", "w") as file:
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    file_path = f"{CHARGES_PATH}/charges_{timestamp}.json"
+
+    with open(file_path, "w") as file:
 
         json.dump(charge_data, file, indent=4, default=str)
 
