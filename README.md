@@ -31,39 +31,30 @@ The project also includes Docker containerization, logging, testing, CI/CD-ready
 enterprise-etl-pipeline/
 │
 ├── extraction/
-│   ├── __init__.py
 │   ├── customers_extractor.py
 │   ├── charges_extractor.py
 │   ├── payments_extractor.py
 │   └── salesforce_connector.py
 │
 ├── utils/
-│   ├── __init__.py
 │   └── stripe_client.py
 │
 ├── configs/
-│   ├── __init__.py
 │   └── config.py
 │
 ├── logs/
-│   ├── customer_extraction.log
-│   ├── charges_extraction.log
-│   └── payments_extraction.log
 │
 ├── data/
 │   └── raw/
 │       └── stripe/
-│           ├── customers/
-│           ├── charges/
-│           └── payments/
 │
 ├── tests/
 │
 ├── .env
 ├── .env.example
-├── README.md
 ├── requirements.txt
-└── run_pipeline.py
+├── run_pipeline.py
+└── README.md
 
 # Future Improvements
 
