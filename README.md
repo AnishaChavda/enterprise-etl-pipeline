@@ -10,27 +10,56 @@ The transformed data is loaded into a PostgreSQL warehouse using SQLAlchemy with
 
 The project also includes Docker containerization, logging, testing, CI/CD-ready structure, and optional AWS S3 integration for intermediate storage. The main objective is to build a scalable, secure, and reliable ETL pipeline that creates a single source of truth for analytics and reporting.
 
-## Tech Stack
+# APIs Used
 
-- Python 3.11+
-- Pandas / Polars
-- PostgreSQL
-- SQLAlchemy
-- Apache Airflow
-- Requests
-- Pydantic
-- Tenacity
-- Docker
-- AWS S3
+- Stripe Customers API
+- Stripe Charges API
+- Stripe Payment Intents API
 
-## Features
 
-- Automated ETL Workflow
-- API Integration
-- Data Cleaning & Transformation
-- Incremental Data Loading
-- Error Handling & Logging
-- Workflow Scheduling with Airflow
-- Docker Support
-- CI/CD Ready Structure
-- Team Collaboration using GitHub
+# Features
+
+- Modular extraction architecture
+- Multiple Stripe API integrations
+- Config-driven development
+- Retry handling
+- Logging system
+- Raw JSON data storage
+- Enterprise-style project structure
+
+# Project Structure
+enterprise-etl-pipeline/
+│
+├── extraction/
+│   ├── customers_extractor.py
+│   ├── charges_extractor.py
+│   ├── payments_extractor.py
+│   └── salesforce_connector.py
+│
+├── utils/
+│   └── stripe_client.py
+│
+├── configs/
+│   └── config.py
+│
+├── logs/
+│
+├── data/
+│   └── raw/
+│       └── stripe/
+│
+├── tests/
+│
+├── .env
+├── .env.example
+├── requirements.txt
+├── run_pipeline.py
+└── README.md
+
+# Future Improvements
+
+- Salesforce integration
+- Data transformation layer
+- Database loading
+- Airflow scheduling
+- Docker deployment
