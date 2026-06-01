@@ -12,7 +12,6 @@ The project also includes Docker containerization, logging, testing, CI/CD-ready
 
 ## Team Members
 - Anisha Chavda
-- Ramyashri
 - krushil lukhi
 
 ## Tech Stack
