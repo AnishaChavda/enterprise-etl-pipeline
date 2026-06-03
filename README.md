@@ -1,3 +1,4 @@
+
 # Enterprise ETL Pipeline & Data Warehouse Synchronizer
 
 ## Project Description
@@ -27,6 +28,24 @@ The project also includes Docker containerization, logging, testing, CI/CD-ready
 - Raw JSON data storage
 - Enterprise-style project structure
 
+# Project Architecture
+
+Stripe API
+→ Raw JSON Extraction
+→ Data Cleaning
+→ Schema Mapping
+→ Data Validation
+→ Final Dataset Generation
+
+# Technologies Used
+Python
+Pandas
+Pydantic
+Stripe API
+Requests
+Logging
+Git & GitHub
+
 # Project Structure
 enterprise-etl-pipeline/
 │
@@ -36,6 +55,18 @@ enterprise-etl-pipeline/
 │   ├── payments_extractor.py
 │   └── salesforce_connector.py
 │
+├── transformation/
+│   ├── customers_transform.py
+│   ├── customers_cleaning.py
+│   ├── customers_transform_mapping.py
+│   ├── pipeline.py
+│   └── final_dataset.py
+│
+├── validation/
+│   ├── __init__.py
+│   ├── customer_schema.py
+│   └── validate_customers.py
+│
 ├── utils/
 │   └── stripe_client.py
 │
@@ -43,10 +74,31 @@ enterprise-etl-pipeline/
 │   └── config.py
 │
 ├── logs/
+│   ├── customer_extraction.log
+│   ├── charges_extraction.log
+│   └── payments_extraction.log
 │
 ├── data/
-│   └── raw/
-│       └── stripe/
+│   ├── raw/
+│   │   └── stripe/
+│   │       ├── customers/
+│   │       ├── charges/
+│   │       └── payments/
+│   │
+│   ├── transformed/
+│   │   └── customers.csv
+│   │
+│   ├── processed/
+│   │   └── customers_clean.csv
+│   │
+│   ├── mapped/
+│   │   └── customers_mapped.csv
+│   │
+│   ├── validated/
+│   │   └── customers_validated.csv
+│   │
+│   └── final/
+│       └── customers_final.csv
 │
 ├── tests/
 │
@@ -56,6 +108,30 @@ enterprise-etl-pipeline/
 ├── run_pipeline.py
 └── README.md
 
+# How to Run
+Activate Virtual Environment
+
+venv\Scripts\activate
+
+Run Transformation Pipeline
+
+python transformation/pipeline.py
+
+Run Validation
+
+python validation/validate_customers.py
+
+Generate Final Dataset
+
+python transformation/final_dataset.py
+
+# Output
+
+Final cleaned datasets are stored inside:
+
+data/final/
+
+customers_final.csv
 # Future Improvements
 
 - Salesforce integration
