@@ -28,25 +28,41 @@ The project also includes Docker containerization, logging, testing, CI/CD-ready
 - Raw JSON data storage
 - Enterprise-style project structure
 
-# Project Architecture
+## Technologies Used
 
+* Python
+* Pandas
+* Pydantic
+* Stripe API
+* Requests
+* Logging
+* Git & GitHub
+
+---
+
+## Project Architecture
+
+```text
 Stripe API
-→ Raw JSON Extraction
-→ Data Cleaning
-→ Schema Mapping
-→ Data Validation
-→ Final Dataset Generation
+    ↓
+Raw JSON Extraction
+    ↓
+Data Cleaning
+    ↓
+Schema Mapping
+    ↓
+Data Validation
+    ↓
+Final Dataset Generation
+    ↓
+Database Loading (Future)
+```
 
-# Technologies Used
-Python
-Pandas
-Pydantic
-Stripe API
-Requests
-Logging
-Git & GitHub
+---
 
-# Project Structure
+## Project Structure
+
+```text
 enterprise-etl-pipeline/
 │
 ├── extraction/
@@ -107,6 +123,7 @@ enterprise-etl-pipeline/
 ├── requirements.txt
 ├── run_pipeline.py
 └── README.md
+```
 
 # How to Run
 Activate Virtual Environment
