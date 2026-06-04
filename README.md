@@ -1,40 +1,100 @@
-# Enterprise ETL Pipeline & Data Warehouse Synchronizer
+# Enterprise ETL Pipeline & Data Warehouse Platform
 
-## Project Description
+## Overview
 
-Enterprise ETL Pipeline & Data Warehouse Synchronizer is a production-level Python data engineering project designed to automate the extraction, transformation, and loading (ETL) of business data from multiple third-party APIs into a centralized PostgreSQL data warehouse.
+This repository now includes a complete production-grade ETL pipeline with:
 
-The system integrates APIs such as Stripe and Salesforce to collect raw business data while handling pagination, API rate limits, retry mechanisms, and secure authentication. Extracted data is processed using Pandas and Polars for cleaning, validation, transformation, and standardization into a unified schema.
+- PostgreSQL data warehouse schema and SQLAlchemy ORM models
+- Snowflake connection and warehouse/schema provisioning
+- Incremental loading, upsert handling, and audit metadata tracking
+- Apache Airflow DAGs for orchestration and SLA monitoring
+- Slack and email alerting for failures and success notifications
+- Docker containerization and local orchestration via Docker Compose
+- GitHub Actions CI/CD validation, linting, and Docker build
+- Modular extraction, transformation, and loading components
 
-The transformed data is loaded into a PostgreSQL warehouse using SQLAlchemy with support for incremental loading and upsert operations to prevent duplicate records. Apache Airflow is used for workflow orchestration and scheduled daily ETL execution.
+## Architecture
 
-The project also includes Docker containerization, logging, testing, CI/CD-ready structure, and optional AWS S3 integration for intermediate storage. The main objective is to build a scalable, secure, and reliable ETL pipeline that creates a single source of truth for analytics and reporting.
+- `extraction/`: API extraction logic for Stripe, Salesforce, and Zendesk
+- `etl/`: orchestration utilities, transform functions, and loaders
+- `db/`: database connectivity and ORM model definitions
+- `airflow/dags/`: Airflow DAG definitions for daily workflows
+- `utils/`: notification and monitoring utilities
+- `docker/`: container build definitions
+- `tests/`: unit tests for models, loaders, and alerts
 
-## Team Members
-- Anisha Chavda
-- krushil lukhi
+## Setup
 
-## Tech Stack
+1. Copy environment variables:
 
-- Python 3.11+
-- Pandas / Polars
-- PostgreSQL
-- SQLAlchemy
-- Apache Airflow
-- Requests
-- Pydantic
-- Tenacity
-- Docker
-- AWS S3
+   ```bash
+   cp .env.example .env
+   ```
 
-## Features
+2. Update `.env` with your PostgreSQL, Snowflake, Slack, and SMTP credentials.
 
-- Automated ETL Workflow
-- API Integration
-- Data Cleaning & Transformation
-- Incremental Data Loading
-- Error Handling & Logging
-- Workflow Scheduling with Airflow
-- Docker Support
-- CI/CD Ready Structure
-- Team Collaboration using GitHub
+3. Install dependencies:
+
+   ```bash
+   python -m pip install --upgrade pip
+   pip install -r requirements.txt
+   ```
+
+## Run Locally
+
+Execute the pipeline from the repository root:
+
+```bash
+python run_pipeline.py
+```
+
+## Docker and Airflow
+
+Start the application, PostgreSQL, Redis, and Airflow services with:
+
+```bash
+docker compose up --build
+```
+
+- Airflow Webserver: `http://localhost:8080`
+- PostgreSQL: `localhost:5432`
+
+## Airflow DAGs
+
+The main orchestration DAG is:
+
+- `airflow/dags/daily_etl_pipeline.py`
+
+It includes tasks for extraction, validation, transformation, staging/warehouse loading, and notifications.
+
+## CI/CD
+
+GitHub Actions are configured in `.github/workflows/ci-cd.yml` to run on push and pull requests.
+
+Pipeline steps:
+
+1. Install dependencies
+2. Run formatting check with `black`
+3. Lint with `flake8`
+4. Security scan with `bandit`
+5. Run unit tests with `pytest`
+6. Build Docker image
+
+## Testing
+
+Run unit tests locally:
+
+```bash
+pytest -q
+```
+
+## Deployment
+
+Use Docker Compose for local development and leverage the GitHub Actions workflow for build validation.
+
+### Notes
+
+- PostgreSQL schema management is handled in `db/postgres.py`
+- Snowflake initialization is handled in `db/snowflake.py`
+- Slack and email alerts are configurable via `.env`
+- ETL metadata and job runs are stored in the `audit` schema
