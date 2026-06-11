@@ -1,96 +1,75 @@
-import pandas as pd
-import os
-import time
+import logging
+from datetime import datetime
 
-start_time = time.time()
-print("Starting Customer Transformation Pipeline")
-
-# --------------------------------------------------
-# STEP 1 : Read Raw JSON
-# --------------------------------------------------
-
-json_file = "data/raw/stripe/customers/customers_20260530_125057.json"
-
-df = pd.read_json(json_file)
-
-print("Raw JSON Loaded")
-
-# --------------------------------------------------
-# STEP 2 : Cleaning
-# --------------------------------------------------
-
-# STEP 2 : Cleaning
-
-if "id" in df.columns:
-    df = df.drop_duplicates(subset=["id"])
-
-print("Duplicate Removal Completed")
-
-df["name"] = df["name"].astype(str).str.strip()
-
-df["email"] = df["email"].fillna(
-    "unknown@email.com"
+from db.postgres import init_postgres
+from db.snowflake import initialize_snowflake
+from etl.extract import (
+    extract_salesforce_data,
+    extract_stripe_charges,
+    extract_stripe_customers,
+    extract_stripe_payments,
+    extract_zendesk_tickets,
 )
-
-df["email"] = df["email"].astype(str).str.lower()
-
-print("Data Cleaning Completed")
-
-# --------------------------------------------------
-# STEP 3 : Schema Mapping
-# --------------------------------------------------
-
-df["created"] = pd.to_datetime(
-    df["created"],
-    unit="s"
+from etl.load import (
+    load_customers,
+    merge_into_snowflake,
+    record_etl_job,
+    send_etl_alert,
 )
+from etl.transform import clean_customers, validate_customers, transform_support_tickets
+from utils.notifications import send_slack_notification, send_email
 
-df.rename(
-    columns={
-        "id": "customer_id",
-        "created": "created_date"
-    },
-    inplace=True
-)
+LOGGER = logging.getLogger("etl.pipeline")
+logging.basicConfig(level=logging.INFO)
 
-df = df[
-    [
-        "customer_id",
-        "name",
-        "email",
-        "created_date"
-    ]
-]
 
-print("Schema Mapping Completed")
+def run_daily_etl():
+    start_time = datetime.utcnow()
+    job_name = "daily_etl_pipeline"
+    try:
+        init_postgres()
+        initialize_snowflake()
 
-# --------------------------------------------------
-# STEP 4 : Save Processed Dataset
-# --------------------------------------------------
+        raw_customers = extract_stripe_customers()
+        raw_charges = extract_stripe_charges()
+        raw_payments = extract_stripe_payments()
+        raw_salesforce = extract_salesforce_data()
+        raw_tickets = extract_zendesk_tickets()
 
-os.makedirs(
-    "data/final",
-    exist_ok=True
-)
+        cleaned_customers = clean_customers(raw_customers)
+        validated_customers = validate_customers(cleaned_customers)
 
-output_file = (
-    "data/final/customers_final.csv"
-)
+        processed_customer_count = load_customers(validated_customers)
 
-df.to_csv(
-    output_file,
-    index=False
-)
+        merge_into_snowflake("RAW.CUSTOMERS", validated_customers, ["customer_id"])
 
-print("Pipeline Completed Successfully")
+        record_etl_job(
+            job_name=job_name,
+            status="SUCCESS",
+            start_time=start_time,
+            end_time=datetime.utcnow(),
+            processed=processed_customer_count,
+        )
 
-print(f"Total Records: {len(df)}")
-
-print(f"Output File: {output_file}")
-print(df.head())
-
-end_time = time.time()
-
-print(
-    f"Execution Time: {end_time-start_time:.2f} seconds"
-)
+        success_message = (
+            f"ETL job completed successfully. Customers loaded: {processed_customer_count}."
+        )
+        LOGGER.info(success_message)
+        send_slack_notification(success_message)
+        return True
+    except Exception as exc:
+        LOGGER.exception("ETL pipeline failed: %s", exc)
+        record_etl_job(
+            job_name=job_name,
+            status="FAILED",
+            start_time=start_time,
+            end_time=datetime.utcnow(),
+            processed=0,
+            failed=1,
+            error=str(exc),
+        )
+        send_etl_alert(
+            subject="ETL Failure: daily_etl_pipeline",
+            body=str(exc),
+        )
+        return False
