@@ -14,7 +14,9 @@ It handles automated extraction from **Stripe**, **Salesforce**, and **Zendesk**
 
 ---
 
-## 🏗️ Architecture & Features
+## Team Members
+- Anisha Chavda
+- krushil lukhi
 
 ### Core Capabilities
 - **Multi-Source Extraction:** Pulls raw data from Stripe (Customers, Charges, Subscriptions), Salesforce (Accounts, Opportunities), and Zendesk (Tickets).
