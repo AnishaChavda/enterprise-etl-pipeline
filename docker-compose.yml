@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  etl_worker:
+    build: .
+    container_name: enterprise_etl_worker
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - ENVIRONMENT=production
+    # This service runs main.py by default as defined in the Dockerfile
